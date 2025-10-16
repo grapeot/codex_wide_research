@@ -2,156 +2,169 @@
 
 - [English Version](#english-version)
 
---------------------------------------------------------------------------------
-
 ## 中文版
 
-这个 repo 给 [Codex CLI](https://github.com/openai/codex/) 加上了 Wide Research 的能力，大幅增强它在大规模资料整理中的可靠性（下文有场景示例）。
+这个repo给[Codex CLI](https://github.com/openai/codex/)加上了Wide Research的功能，大幅增强了它的能力（下文有具体示例）。
 
-### 1. 背景：Manus 的 Wide Research
+### 1. 背景：Manus的Wide Research
 
-2025 年 7 月底 Manus 发布 Wide Research，允许同时调度上百个通用智能体并行执行任务。官方案例展示了对 100 款运动鞋的市场分析、几十张海报的同步生成等场景。
+2025年7月底，Manus 发布了 Wide Research。这个功能可以同时调度上百个通用智能体并行执行任务。官方案例展示了对 100 款运动鞋的市场分析、几十张海报的同步生成等任务。
 
-从产品层面，它解决了大规模调研的效率问题；从技术角度看意义更大。LLM 在输出接近 context window 阈值时普遍出现“偷懒”：长文翻译漏译、长列表总结越写越短、甚至随手压缩。多数用户难以察觉这一限制，使得模型潜力被浪费。
+这个功能从产品业务的角度解决了大规模调研的问题，但从技术上看它的意义可能更大。LLM或者说AI，它一大限制就是当输出的长度到了一定程度，比如说占了max context window 50%，或者有时候甚至20%的时候，它就会开始偷懒。比如说让它翻译一个东西，前面做得还挺认真的，但是到中间就开始跳一句翻一句，到后面干脆就不原样翻译，而是一边做缩略一边做翻译。
 
-Wide Research 的核心是“宽上下文”策略：把大任务拆成多个子任务，让每个子 Agent 的上下文足够短，再用程序而非 LLM 合并结果，根本上规避了长上下文退化。
+而且这是一个所有LLM都有的普遍规律，严重限制了LLM的实用性。具体表现就是不听话，偷懒。更糟糕的是，大多数AI的用户其实没有意识到这个限制。这就导致很多时候LLM的能力在那里，但大多数用户因为识别不出来这个限制，也不知道怎么绕过去，AI的能力被极大浪费了。
 
-我在 Manus 中几乎离不开 Wide Research；与此同时，我常用的 Codex 也非常听话、主动、可控。但如果不加额外编排，Codex 面对海量子任务仍然容易卡在同样的上下文瓶颈。这正是我为 Codex 设计这套 Wide Research Prompt 的原因：让它也能以脚本化方式完成“宽上下文”任务。
+Wide Research的核心在于它的“宽上下文”的策略。它用了分而治之的思想，通过把一个问题分解成很多独立的子问题，来把子Agents的上下文窗口分隔开了。这样每个Agent的输出都不会太长。最后再用程序（而不是LLM）把输出合并起来，解决了这个根本性的限制。
+
+我在使用Manus的过程中越来越离不开Wide Research这个功能。而与此同时，我另一个很常用的工具是Codex。相比于其他AI，Codex的AI特别听话、主动、可靠。但即便如此，由于上面所说的output context window的限制，在进行一些类似Wide Research的大规模任务时，它仍然会力不从心。
+
+这是为什么我做了这个 repo，试图给 Codex 一个 prompt 上的指引，从而让它也能实现 Wide Research 的功能。
 
 ### 2. 实例展示
 
-《现代软件工程》课程要求 53 名学生分别写博客提问题，文章散落在多个网站。我们起初用 DeepSeek [尝试总结](https://www.cnblogs.com/xinz/p/19139660)，结果几乎全是幻觉。
+我们有一个《现代软件工程》课程，其中的一个作业是希望学生把自己的上课感想和问题写成一篇 blog。一共53个学生交了作业，他们的文章分散在不同的网站上。我们一开始试着用了DeepSeek来[做总结](https://www.cnblogs.com/xinz/p/19139660)，但是发现它的结果大都是幻觉。
 
-如果有一个靠谱的 AI 能抓取、理解、概括所有文章，并继续做聚合分析，就能显著节省教师时间。我们使用本 repo 给出的 prompt 完成了该任务：
+如果有一个靠谱的AI可以抓取、理解和概括他们的文章内容，并且在这个基础上做出更抽象、更高层的分析，可以省掉老师很多时间。
 
-> https://www.cnblogs.com/xinz/p/19139660  
->  
-> 我们在上一门软件工程课的时候录制了一个作业，让学生在 blog 里面对软件工程进行提问。这个页面是一个 AI 总结，但是里面基本上全是幻觉，只有 URL 是正确的。我现在就想看下面几件事情：  
->  
-> 第一，你把里面学生 blog 的姓名和 URL 全部提取出来，但是不要看 AI 总结，那都是幻觉。  
->  
-> 第二，你用 Wide Research 把每一个 blog 阅读一下，总结一下每个学生分别提了什么问题，用标题加简述的形式进行总结。  
->  
-> 第三，你再具体看一下这些总结的结果，看看大家有没有什么共同点或者最关注的话题，设计一个 label taxonomy。  
->  
-> 第四，你再再次调用 Wide Research，针对每篇文章的内容给它们 assign 五个标签。  
->  
-> 第五，你再写一个程序来统计最常见的几个标签。  
->  
-> 第六，你再根据上面所有的内容汇总整理成一个单网页的中文的有深度的分析。它的根本目标是让人一看就知道学生最关心的问题是什么，同时还能点进文章进行核实。要着重强调思维深度，给人惊喜感，让人觉得有顿见，又能轻松验证它的正确性。对于从 Wide Research 中间拿到的结果不要进行缩略，直接放到最终报告里。最终结果发布出来。  
->  
+我们使用这个repo可以完美完成这个任务。使用这样的prompt：
+
+> https://www.cnblogs.com/xinz/p/19139660
+> 
+> 我们在上一门软件工程课的时候录制了一个作业，让学生在 blog 里面对软件工程进行提问。这个页面是一个 AI 总结，但是里面基本上全是幻觉，只有 URL 是正确的。我现在就想看下面几件事情：
+> 
+> 第一，你把里面学生 blog 的姓名和 URL 全部提取出来，但是不要看 AI 总结，那都是幻觉。
+> 
+> 第二，你用 Wide Research 把每一个 blog 阅读一下，总结一下每个学生分别提了什么问题，用标题加简述的形式进行总结。
+> 
+> 第三，你再具体看一下这些总结的结果，看看大家有没有什么共同点或者最关注的话题，设计一个 label taxonomy。
+> 
+> 第四，你再再次调用 Wide Research，针对每篇文章的内容给它们 assign 五个标签。
+> 
+> 第五，你再写一个程序来统计最常见的几个标签。
+> 
+> 第六，你再根据上面所有的内容汇总整理成一个单网页的中文的有深度的分析。它的根本目标是让人一看就知道学生最关心的问题是什么，同时还能点进文章进行核实。要着重强调思维深度，给人惊喜感，让人觉得有顿见，又能轻松验证它的正确性。对于从 Wide Research 中间拿到的结果不要进行缩略，直接放到最终报告里。最终结果发布出来。
+>
 > wide_research_prompt_cn.md
 
-Codex 会先给出计划，用户确认后无需人工干预就能跑完整个流程，最终生成 [软件工程课程分析网页](https://yage.ai/software-engineering-report.html)。
+注意最后的md文件，这就是repo里面的prompt文件。
 
-结果亮点：
+Codex收到这个任务以后首先会做一个计划，让用户确认。确认以后在没有人工干预的情况下忙活了半个多小时，生成了[这样一个网页](https://yage.ai/software-engineering-report.html)。
 
-1. 53 名学生全部覆盖。  
-2. 姓名与 URL 配对准确。  
-3. URL、问题摘要、标签等内容均无幻觉。
+他有几个特征：  
 
-对比其他方案：
+1. 53个学生的结果全出来了。  
+2. 姓名和 URL 之间的对应关系都是对的。  
+3. 不论是 URL 还是题的问题，还是做打的标签，都没有幻觉和错误。
 
-- Deep Research 能给出十几篇有效结果，但后续受上下文限制中断。
-- 纯手工使用 Codex 能处理二十多篇，速度慢且易遗漏。
-- Manus Wide Research 与本仓库编排的 Codex Wide Research 是目前唯二成功“全覆盖”的方案。
+这个是非常难得的。事实上，在使用 Wide Research 之前，我们也试了用其他工具来做这个任务。一般的 AI 工具就不说了，出来的质量很差。唯一做得比较好的是两个工具： 
+
+第一是 Deep Research，由于它可以输出十几个学生的正确结果，但是由于类似 context window 长度的限制，后面更多的学生作业它就没有看了，就没有看和输出了。  
+第二是 Codex，它用纯手工的方法去做，可以输出二十多个学生的概括。但也是由于同样的原因，这样做一方面很慢，另一方面也漏了很多学生。
+
+唯一成功的是Manus的wide research和我们的Codex wide research。
 
 ### 3. 项目概述
 
-本仓库提供可复用的 Wide Research 编排脚手架，包含：
+本仓库提供了一个可复用的 Wide Research 编排脚手架，包含：
 
-- **主控流程**：`wide_research_prompt_cn.md` 定义了操作规范，在 Codex 中 @ 该文件即可启用。
-- **批量调度脚本**：`scripts/run_children.sh` 为最小示例，帮助 Codex 避免常见陷阱。
+- **主控流程**：在 `wide_research_prompt_cn.md` 中定义了 Wide Research 的操作规范。在Codex中@这个文件即可启用。
+- **批量调度脚本**：`scripts/run_children.sh` 是一个barebone示例脚本，帮助Codex规避一些最基础的问题。
 
 ### 4. 环境配置
 
-1. **Codex CLI 设置**  
-   - 在实验环境可将 `/approve` 设为 `Full Access`，减少人工确认。
+1. **Codex CLI 设置**
+   - 在实验环境下，可将 `/approve` 设为 `Full Access` 以避免频繁人工确认。
 
-2. **可选 MCP Server**  
-   - 运行以下命令可安装两个 MCP server（非必需但能增强能力）：
+2. **可选 MCP Server**
+   - 可以运行下面的指令安装两个MCP server。这两个server不是硬性依赖（装不上也没事）。但可以增强Codex的能力。
      ```bash
-     codex mcp add playright -- npx @playwright/mcp@latest
-     codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
+      codex mcp add playright -- npx @playwright/mcp@latest
+      codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
      ```
-
 ### 5. 使用步骤
 
-在会话中引用 `wide_research_prompt_cn.md`，并在 prompt 描述 Wide Research 任务，Codex 即会按照分治策略完成并行流程。示例 prompt 见前文。
+在会话中引用 `wide_research_prompt_cn.md` 即可。然后在Prompt里提到Wide Research的时候Codex就会知道怎么并行做了。一个示例prompt见第二节。
 
 --------------------------------------------------------------------------------
 
 ## English Version
 
-This repository equips the [Codex CLI](https://github.com/openai/codex/) with Wide Research style orchestration, greatly boosting its reliability on large-scale information synthesis tasks.
+This repository adds Wide Research capabilities to the [Codex CLI](https://github.com/openai/codex/), dramatically boosting what it can achieve (see below for a concrete example).
 
 ### 1. Background: Manus Wide Research
 
-In late July 2025, Manus launched Wide Research, a feature that can dispatch hundreds of general-purpose agents in parallel. Official demos include market research for 100 sneakers and concurrent design of dozens of posters.
+In late July 2025, Manus released Wide Research. The feature can coordinate hundreds of general-purpose agents in parallel. Official showcase tasks include market research for 100 sneakers and simultaneous creation of dozens of posters.
 
-From a product perspective, it accelerates large-scale research. Technically, it solves a classic LLM failure mode: when the generated output approaches the context-window limit (often 20–50% of the window), most LLMs start “cutting corners”—skipping sentences in translations or aggressively shortening long lists. Many users do not notice this degradation, so model capacity is underused.
+From a product standpoint, it solves the pain of large-scale research. Technically it is even more meaningful. LLMs—or AI in general—have a well-known limitation: once the output consumes a large portion of the maximum context window (say 50%, sometimes even 20%), the model starts “slacking off.” For instance, when asked to translate a long document, it behaves diligently at the beginning, but midway it starts skipping sentences, and near the end it paraphrases instead of translating verbatim.
 
-Wide Research embraces a “wide context” strategy: break the big request into smaller subtasks, keep each agent’s context short, and merge the answers with deterministic code instead of another LLM. This eliminates the long-context decay problem.
+This pattern appears across all LLMs, severely impacting practical usefulness. The model simply stops following instructions. Worse still, most AI users do not realize this constraint. As a result, tremendous model capacity is wasted because people cannot recognize the issue or work around it.
 
-I rely heavily on Wide Research inside Manus. Codex remains my go-to assistant because it is obedient, proactive, and dependable. However, without additional orchestration Codex still struggles with dozens of sub-requests due to the same context ceiling. That is why this repository provides a dedicated Wide Research prompt so Codex can execute the divide-and-conquer workflow programmatically.
+Wide Research’s core is the “wide context” strategy. It applies divide-and-conquer: break the problem into many independent subtasks, isolate each agent’s context window, keep outputs short, and finally merge everything with code (instead of another LLM). That resolves the fundamental limitation.
+
+I increasingly rely on Manus Wide Research. At the same time, Codex is another indispensable tool because it is obedient, proactive, and reliable. Yet even Codex struggles with massive tasks due to the context-window issue highlighted above.
+
+That is why this repository exists: to provide Codex with a guiding prompt so it can deliver Wide Research-style results.
 
 ### 2. Case Study
 
-In a “Modern Software Engineering” class, 53 students wrote blog posts to raise questions about the course, scattered across multiple sites. Our early attempt with DeepSeek to [summarize the posts](https://www.cnblogs.com/xinz/p/19139660) produced hallucinations.
+In the “Modern Software Engineering” course, students had to blog their reflections and questions. Fifty-three students submitted posts hosted across different websites. Our first attempt was to use DeepSeek to [summarize the posts](https://www.cnblogs.com/xinz/p/19139660), but the output was mostly hallucinations.
 
-We needed an assistant that could fetch, read, summarize, and aggregate every article reliably. Using the prompt shipped in this repo:
+We wanted a dependable AI assistant that could fetch, understand, and summarize every article—and then produce higher-level analysis. The repository’s prompt handles the job perfectly:
 
-> https://www.cnblogs.com/xinz/p/19139660  
->  
-> During our Modern Software Engineering course we assigned students to post questions on their blogs. This page is an AI-generated summary, but almost everything is hallucinated—the URLs are the only trustworthy part. Please do the following:  
->  
-> 1. Extract every student’s name and blog URL from the page, ignoring the hallucinated summary content.  
->  
-> 2. Run Wide Research to read each blog and summarize the questions raised by every student using a title plus a short description.  
->  
-> 3. Review those summaries to identify the common themes or top concerns, and design a label taxonomy.  
->  
-> 4. Invoke Wide Research again to assign five labels to each article based on its content.  
->  
-> 5. Write a program that counts the most frequent labels.  
->  
-> 6. Based on everything above, assemble a single Chinese webpage with deep analysis. Readers should immediately understand what the students care about most and be able to click into the blogs for verification. Emphasize depth and delight; do not abridge the Wide Research outputs—include them verbatim in the final report. Publish the final result.  
->  
+> https://www.cnblogs.com/xinz/p/19139660
+> 
+> During our Modern Software Engineering course we recorded an assignment that asks students to post questions on their blogs. This page is an AI-generated summary, but almost everything on it is hallucinated—the URLs are the only part we can trust. Please do the following tasks:
+> 
+> 1. Extract every student’s name and blog URL from the page, ignoring the hallucinated summary content.
+> 
+> 2. Use Wide Research to read each blog, summarizing the questions every student asks with a title and a short description.
+> 
+> 3. Review the summaries to find any common themes or dominant topics and design a label taxonomy.
+> 
+> 4. Invoke Wide Research again to assign five labels to each article based on its content.
+> 
+> 5. Write a program that counts the most frequent labels.
+> 
+> 6. Combine all findings into a single Chinese webpage that is deeply insightful. Readers should immediately see what the students care about most and be able to click through to verify the original posts. Emphasize depth, surprise the reader with insight, and keep the Wide Research outputs intact in the final report. Publish the finished page.
+>
 > wide_research_prompt_en.md
 
-Codex proposed a plan, received approval, and autonomously generated the [software engineering report](https://yage.ai/software-engineering-report.html) with no additional intervention.
+Notice the prompt file at the end—that is exactly the markdown shipped in this repo.
 
-Highlights:
+Codex first drafts a plan for confirmation. Once approved, it works autonomously for roughly half an hour and produces [this webpage](https://yage.ai/software-engineering-report.html).
+
+The outcome stands out because:
 
 1. All 53 students are covered.  
-2. Names and URLs are correctly mapped.  
-3. Summaries, labels, and links contain no hallucinations.
+2. Names and URLs match correctly.  
+3. The URLs, questions, and labels contain no hallucinations.
 
-Alternative attempts:
+This result is extremely rare. Before adopting Wide Research, we tried multiple tools and saw poor accuracy. Only two workflows performed reasonably well:
 
-- Deep Research handled a dozen posts before stalling because of context limits.  
-- Running Codex manually covered twenty-something posts but was slow and missed entries.  
-- Manus Wide Research and this Codex Wide Research pipeline are the only workflows that completed the full set.
+- Deep Research returned accurate summaries for about a dozen students, but stalled once context limits kicked in.  
+- A purely manual Codex approach produced summaries for twenty-something students, yet it was slow and still missed many entries.
+
+Only Manus Wide Research and this Codex Wide Research setup completed the entire dataset.
 
 ### 3. Project Overview
 
-The repository offers reusable scaffolding:
+The repository supplies reusable Wide Research scaffolding:
 
-- **Orchestrator Prompt**: `wide_research_prompt_en.md` defines the workflow—mention the file inside Codex to activate it.
-- **Batch Runner**: `scripts/run_children.sh` is a minimal example showing how Codex can avoid common pitfalls.
+- **Orchestrator prompt**: `wide_research_prompt_en.md` defines the workflow. Mention it (@-mention) in Codex to activate.
+- **Batch runner**: `scripts/run_children.sh` is a barebones example that helps Codex avoid the most basic pitfalls.
 
 ### 4. Environment Setup
 
-1. **Codex CLI**  
-   - For experiments, set `/approve` to `Full Access` to skip manual approvals.
+1. **Codex CLI settings**
+   - In experimental environments, set `/approve` to `Full Access` so Codex doesn’t pause for frequent confirmations.
 
-2. **Optional MCP Servers**  
-   - Install two optional servers (not required but handy):
+2. **Optional MCP servers**
+   - Install two non-mandatory servers to expand Codex’s abilities:
      ```bash
-     codex mcp add playright -- npx @playwright/mcp@latest
-     codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
+      codex mcp add playright -- npx @playwright/mcp@latest
+      codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
      ```
 
 ### 5. Usage
 
-Mention `wide_research_prompt_en.md` in your dialogue and describe the task as a Wide Research job; Codex will run the parallel divide-and-conquer flow. A real-world example is provided in Section 2.
+Reference `wide_research_prompt_en.md` in your conversation. When you mention Wide Research, Codex will know to execute the parallel workflow. The sample prompt above demonstrates the process.
