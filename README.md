@@ -26,7 +26,7 @@ Wide Research 的核心是“宽上下文”策略：把大任务拆成多个子
 
 > https://www.cnblogs.com/xinz/p/19139660  
 > ……  
-> wide_research_prompt.md
+> wide_research_prompt_cn.md
 
 Codex 会先给出计划，用户确认后无需人工干预就能跑完整个流程，最终生成 [软件工程课程分析网页](https://yage.ai/software-engineering-report.html)。
 
@@ -46,7 +46,7 @@ Codex 会先给出计划，用户确认后无需人工干预就能跑完整个�
 
 本仓库提供可复用的 Wide Research 编排脚手架，包含：
 
-- **主控流程**：`wide_research_prompt.md` 定义了操作规范，在 Codex 中 @ 该文件即可启用。
+- **主控流程**：`wide_research_prompt_cn.md` 定义了操作规范，在 Codex 中 @ 该文件即可启用。
 - **批量调度脚本**：`scripts/run_children.sh` 为最小示例，帮助 Codex 避免常见陷阱。
 
 ### 4. 环境配置
@@ -63,7 +63,7 @@ Codex 会先给出计划，用户确认后无需人工干预就能跑完整个�
 
 ### 5. 使用步骤
 
-在会话中引用 `wide_research_prompt.md`，并在 prompt 描述 Wide Research 任务，Codex 即会按照分治策略完成并行流程。示例 prompt 见前文。
+在会话中引用 `wide_research_prompt_cn.md`，并在 prompt 描述 Wide Research 任务，Codex 即会按照分治策略完成并行流程。示例 prompt 见前文。
 
 --------------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ We needed an assistant that could fetch, read, summarize, and aggregate every ar
 
 > https://www.cnblogs.com/xinz/p/19139660  
 > …  
-> wide_research_prompt.md
+> wide_research_prompt_en.md
 
 Codex proposed a plan, received approval, and autonomously generated the [software engineering report](https://yage.ai/software-engineering-report.html) with no additional intervention.
 
@@ -109,7 +109,7 @@ Alternative attempts:
 
 The repository offers reusable scaffolding:
 
-- **Orchestrator Prompt**: `wide_research_prompt.md` defines the workflow—mention the file inside Codex to activate it.
+- **Orchestrator Prompt**: `wide_research_prompt_en.md` defines the workflow—mention the file inside Codex to activate it.
 - **Batch Runner**: `scripts/run_children.sh` is a minimal example showing how Codex can avoid common pitfalls.
 
 ### 4. Environment Setup
@@ -126,4 +126,4 @@ The repository offers reusable scaffolding:
 
 ### 5. Usage
 
-Mention `wide_research_prompt.md` in your dialogue and describe the task as a Wide Research job; Codex will run the parallel divide-and-conquer flow. A real-world example is provided in Section 2.
+Mention `wide_research_prompt_en.md` in your dialogue and describe the task as a Wide Research job; Codex will run the parallel divide-and-conquer flow. A real-world example is provided in Section 2.
