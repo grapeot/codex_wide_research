@@ -4,7 +4,7 @@
 
 ## 中文版
 
-这个repo给[Codex CLI](https://github.com/openai/codex/)加上了[Wide Research](https://manus.im/blog/introducing-wide-research)的功能，大幅增强了它的能力（下文有具体示例）。
+这个repo给[Codex CLI](https://github.com/openai/codex/)加上了Wide Research的功能，大幅增强了它的能力（下文有具体示例）。
 
 ### 1. 背景：Manus的Wide Research
 
@@ -89,7 +89,7 @@ Codex收到这个任务以后首先会做一个计划，让用户确认。确认
 
 ## English Version
 
-This repository adds [Wide Research](https://manus.im/blog/introducing-wide-research) capabilities to the [Codex CLI](https://github.com/openai/codex/), dramatically boosting what it can achieve (see below for a concrete example).
+This repository adds Wide Research capabilities to the [Codex CLI](https://github.com/openai/codex/), dramatically boosting what it can achieve (see below for a concrete example).
 
 ### 1. Background: Manus Wide Research
 
