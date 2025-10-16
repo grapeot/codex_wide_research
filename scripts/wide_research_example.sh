@@ -12,6 +12,20 @@ if ! command -v codex >/dev/null 2>&1; then
   exit 127
 fi
 
+if command -v stdbuf >/dev/null 2>&1; then
+  STDBUF_WRAP=(stdbuf -oL -eL)
+else
+  STDBUF_WRAP=()
+fi
+
+run_codex() {
+  if (( ${#STDBUF_WRAP[@]} )); then
+    "${STDBUF_WRAP[@]}" codex exec "$@"
+  else
+    codex exec "$@"
+  fi
+}
+
 INDEX_URL="${1:-https://yage.ai/tag/deepseek.html}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 RUN_DIR="runs/${STAMP}-wide-research"
@@ -184,9 +198,8 @@ INDEX_PROMPT="${PROMPT_DIR}/download_index.prompt.md"
 INDEX_URL="${INDEX_URL}" INDEX_HTML_PATH="${INDEX_HTML_REL}" OUTPUT_JSON_PATH="${INDEX_JSON_REL}" \
   envsubst < "${INDEX_PROMPT_TEMPLATE}" > "${INDEX_PROMPT}"
 
-cat "${INDEX_PROMPT}" | codex exec \
-  "${codex_opts[@]}" \
-  > "${LOG_DIR}/indexer.log" 2>&1
+run_codex "${codex_opts[@]}" \
+  < "${INDEX_PROMPT}" | tee "${LOG_DIR}/indexer.log"
 
 if [[ ! -s "${INDEX_JSON_PATH}" ]]; then
   echo "Indexer failed: ${INDEX_JSON_PATH} is missing or empty." >&2
@@ -230,9 +243,8 @@ jq -r '
   OUTPUT_JSON_PATH="${POST_JSON_REL}" \
     envsubst < "${POST_PROMPT_TEMPLATE}" > "${POST_PROMPT}"
 
-  cat "${POST_PROMPT}" | codex exec \
-    "${codex_opts[@]}" \
-    > "${POST_LOG_PATH}" 2>&1 &
+  run_codex "${codex_opts[@]}" \
+    < "${POST_PROMPT}" | tee "${POST_LOG_PATH}" > /dev/null &
 done
 
 wait

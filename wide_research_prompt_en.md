@@ -35,7 +35,7 @@ When a user mentions “Wide Research” or references this file, load these ins
        - write outputs under predictable paths such as `child_outputs/<id>.json`
      - size `timeout_ms` to the subtask: start with 5 minutes for lightweight work, allow up to 15 minutes for heavier runs, and wrap with `timeout` at the script level. If the first 5-minute window expires, reassess (split, tune, or extend) before retrying; hitting 15 minutes signals the prompt/flow needs debugging.
      - Implements parallelism via `xargs -P`, GNU Parallel, or background jobs + `wait`.
-     - Captures exit codes and redirects logs into the run directory.
+     - Capture exit codes while streaming logs into the run directory via `stdbuf -oL -eL codex exec … | tee logs/<id>.log` so operators can `tail -f` progress in real time.
    - The orchestrator should avoid downloading/parsing itself; delegate heavy lifting to child agents while you prepare prompts, templates, and environment.
 
 4. **Design child prompts**
@@ -53,7 +53,7 @@ When a user mentions “Wide Research” or references this file, load these ins
 5. **Parallel execution & monitoring**
    - Run the scheduler.
    - Track for each child: start/end time, duration, status.
-   - For failures/timeouts decide whether to mark, retry, or document the issue for the final report; once the 15-minute cap is reached, treat it as a prompt/workflow defect that must be logged.
+   - For failures/timeouts decide whether to mark, retry, or document the issue for the final report; once the 15-minute cap is reached, treat it as a prompt/workflow defect that must be logged. Encourage users to `tail -f logs/<id>.log` during long runs.
 
 6. **Programmatic aggregation**
    - Use scripts (e.g., `aggregate.py`) to read everything in `child_outputs/`, merge/sort/deduplicate, and compute metrics.
