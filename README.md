@@ -12,7 +12,7 @@
 
 这个功能从产品业务的角度解决了大规模调研的问题，但从技术上看它的意义可能更大。LLM或者说AI，它一大限制就是当输出的长度到了一定程度，比如说占了max context window 50%，或者有时候甚至20%的时候，它就会开始偷懒。比如说让它翻译一个东西，前面做得还挺认真的，但是到中间就开始跳一句翻一句，到后面干脆就不原样翻译，而是一边做缩略一边做翻译。
 
-而且这是一个所有LLM都有的普遍规律，严重限制了LLM的实用性。具体表现就是不听话，偷懒。更糟糕的是，大多数AI的用户其实没有意识到这个限制。这就导致很多时候LLM的能力在那里，但大多数用户因为识别不出来这个限制，也不知道怎么绕过去，AI的能力被极大浪费了。
+而且这是一个所有LLM都有的普遍规律，严重限制了LLM的实用性。具体表现就是问题一复杂，规模一大就不听话/偷懒。更糟糕的是，大多数AI的用户其实没有意识到这个限制。这就导致很多时候LLM的能力在那里，但大多数用户因为识别不出来这个限制，也不知道怎么绕过去，AI的能力被极大浪费了。
 
 Wide Research的核心在于它的“宽上下文”的策略。它用了分而治之的思想，通过把一个问题分解成很多独立的子问题，来把子Agents的上下文窗口分隔开了。这样每个Agent的输出都不会太长。最后再用程序（而不是LLM）把输出合并起来，解决了这个根本性的限制。
 
@@ -97,7 +97,7 @@ In late July 2025, Manus released [Wide Research](https://manus.im/blog/introduc
 
 From a product standpoint, it solves the pain of large-scale research. Technically it is even more meaningful. LLMs—or AI in general—have a well-known limitation: once the output consumes a large portion of the maximum context window (say 50%, sometimes even 20%), the model starts “slacking off.” For instance, when asked to translate a long document, it behaves diligently at the beginning, but midway it starts skipping sentences, and near the end it paraphrases instead of translating verbatim.
 
-This pattern appears across all LLMs, severely impacting practical usefulness. The model simply stops following instructions. Worse still, most AI users do not realize this constraint. As a result, tremendous model capacity is wasted because people cannot recognize the issue or work around it.
+This pattern appears across all LLMs, severely impacting practical usefulness. As soon as a task becomes complex or scales up, the model stops following instructions and starts slacking off. Worse still, most AI users do not realize this constraint. As a result, tremendous model capacity is wasted because people cannot recognize the issue or work around it.
 
 Wide Research’s core is the “wide context” strategy. It applies divide-and-conquer: break the problem into many independent subtasks, isolate each agent’s context window, keep outputs short, and finally merge everything with code (instead of another LLM). That resolves the fundamental limitation.
 
