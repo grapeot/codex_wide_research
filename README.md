@@ -8,7 +8,7 @@
 
 ### 1. 背景：Manus的Wide Research
 
-2025年7月底，Manus 发布了 Wide Research。这个功能可以同时调度上百个通用智能体并行执行任务。官方案例展示了对 100 款运动鞋的市场分析、几十张海报的同步生成等任务。
+2025年7月底，Manus 发布了 [Wide Research](https://manus.im/blog/introducing-wide-research)。这个功能可以同时调度上百个通用智能体并行执行任务。官方案例展示了对 100 款运动鞋的市场分析、几十张海报的同步生成等任务。
 
 这个功能从产品业务的角度解决了大规模调研的问题，但从技术上看它的意义可能更大。LLM或者说AI，它一大限制就是当输出的长度到了一定程度，比如说占了max context window 50%，或者有时候甚至20%的时候，它就会开始偷懒。比如说让它翻译一个东西，前面做得还挺认真的，但是到中间就开始跳一句翻一句，到后面干脆就不原样翻译，而是一边做缩略一边做翻译。
 
@@ -93,7 +93,7 @@ This repository adds [Wide Research](https://manus.im/blog/introducing-wide-rese
 
 ### 1. Background: Manus Wide Research
 
-In late July 2025, Manus released Wide Research. The feature can coordinate hundreds of general-purpose agents in parallel. Official showcase tasks include market research for 100 sneakers and simultaneous creation of dozens of posters.
+In late July 2025, Manus released [Wide Research](https://manus.im/blog/introducing-wide-research). The feature can coordinate hundreds of general-purpose agents in parallel. Official showcase tasks include market research for 100 sneakers and simultaneous creation of dozens of posters.
 
 From a product standpoint, it solves the pain of large-scale research. Technically it is even more meaningful. LLMs—or AI in general—have a well-known limitation: once the output consumes a large portion of the maximum context window (say 50%, sometimes even 20%), the model starts “slacking off.” For instance, when asked to translate a long document, it behaves diligently at the beginning, but midway it starts skipping sentences, and near the end it paraphrases instead of translating verbatim.
 
