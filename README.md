@@ -25,7 +25,21 @@ Wide Research 的核心是“宽上下文”策略：把大任务拆成多个子
 如果有一个靠谱的 AI 能抓取、理解、概括所有文章，并继续做聚合分析，就能显著节省教师时间。我们使用本 repo 给出的 prompt 完成了该任务：
 
 > https://www.cnblogs.com/xinz/p/19139660  
-> ……  
+>  
+> 我们在上一门软件工程课的时候录制了一个作业，让学生在 blog 里面对软件工程进行提问。这个页面是一个 AI 总结，但是里面基本上全是幻觉，只有 URL 是正确的。我现在就想看下面几件事情：  
+>  
+> 第一，你把里面学生 blog 的姓名和 URL 全部提取出来，但是不要看 AI 总结，那都是幻觉。  
+>  
+> 第二，你用 Wide Research 把每一个 blog 阅读一下，总结一下每个学生分别提了什么问题，用标题加简述的形式进行总结。  
+>  
+> 第三，你再具体看一下这些总结的结果，看看大家有没有什么共同点或者最关注的话题，设计一个 label taxonomy。  
+>  
+> 第四，你再再次调用 Wide Research，针对每篇文章的内容给它们 assign 五个标签。  
+>  
+> 第五，你再写一个程序来统计最常见的几个标签。  
+>  
+> 第六，你再根据上面所有的内容汇总整理成一个单网页的中文的有深度的分析。它的根本目标是让人一看就知道学生最关心的问题是什么，同时还能点进文章进行核实。要着重强调思维深度，给人惊喜感，让人觉得有顿见，又能轻松验证它的正确性。对于从 Wide Research 中间拿到的结果不要进行缩略，直接放到最终报告里。最终结果发布出来。  
+>  
 > wide_research_prompt_cn.md
 
 Codex 会先给出计划，用户确认后无需人工干预就能跑完整个流程，最终生成 [软件工程课程分析网页](https://yage.ai/software-engineering-report.html)。
@@ -88,7 +102,21 @@ In a “Modern Software Engineering” class, 53 students wrote blog posts to ra
 We needed an assistant that could fetch, read, summarize, and aggregate every article reliably. Using the prompt shipped in this repo:
 
 > https://www.cnblogs.com/xinz/p/19139660  
-> …  
+>  
+> During our Modern Software Engineering course we assigned students to post questions on their blogs. This page is an AI-generated summary, but almost everything is hallucinated—the URLs are the only trustworthy part. Please do the following:  
+>  
+> 1. Extract every student’s name and blog URL from the page, ignoring the hallucinated summary content.  
+>  
+> 2. Run Wide Research to read each blog and summarize the questions raised by every student using a title plus a short description.  
+>  
+> 3. Review those summaries to identify the common themes or top concerns, and design a label taxonomy.  
+>  
+> 4. Invoke Wide Research again to assign five labels to each article based on its content.  
+>  
+> 5. Write a program that counts the most frequent labels.  
+>  
+> 6. Based on everything above, assemble a single Chinese webpage with deep analysis. Readers should immediately understand what the students care about most and be able to click into the blogs for verification. Emphasize depth and delight; do not abridge the Wide Research outputs—include them verbatim in the final report. Publish the final result.  
+>  
 > wide_research_prompt_en.md
 
 Codex proposed a plan, received approval, and autonomously generated the [software engineering report](https://yage.ai/software-engineering-report.html) with no additional intervention.
