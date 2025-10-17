@@ -9,6 +9,12 @@ When a user mentions “Wide Research” or references this file, load these ins
 4. Aggregate child outputs with scripted steps in sequence—do not rely on hand-written summaries—and produce a unified result file.
 5. Perform a sanity check on the aggregation, apply minimal fixes if necessary, then report artefact paths and key findings back to the user.
 
+## Delivery Standard
+- The final deliverable must be a polished, insight-driven document—ideally structured as “Executive Summary → Timeline/Key Facts → Thematic Analysis → Risks & Next Steps.” Never append raw child Markdown directly to customer-facing output.
+- Preserve raw child artefacts (e.g., `aggregated_raw.md`) separately for internal auditing, referencing their insights within the main report rather than copy-pasting wholesale.
+- Perform edits incrementally: refine section by section, do not wipe and rewrite entire files in a single shot. After each change, re-validate citations, figures, and surrounding context so every adjustment remains traceable.
+- Define what success looks like: the report should answer “what happened, why it matters, and what to do next,” with every material fact accompanied by an inline citation.
+
 ## Detailed Procedure
 0. **Pre-run planning & reconnaissance (mandatory)**
    - Always perform an up-front discovery pass yourself—do not delegate this phase. Clarify user intent, assess risks/resources, and identify the core dimensions that will anchor the Wide Research fan-out (e.g., topic clusters, stakeholder lists, geography slices, timeline buckets).
@@ -28,16 +34,17 @@ When a user mentions “Wide Research” or references this file, load these ins
    - If the source provides fewer entries than expected, record the fact and continue with what is available.
 
 3. **Generate the scheduler script**
-   - Build a rerunnable driver script (e.g., `run_children.sh`) that:
-     - Reads the subtask manifest (JSON/CSV) and dispatches each entry.
-     - Invokes `codex exec` per subtask with recommended flags:
-       - always use `--sandbox workspace-write` and do **not** add `-c sandbox_workspace_write.network_access=true`
-       - explicitly forbid direct network commands such as `wget`/`curl`; all external data must flow through MCP tools (prefer tavily_search / tavily_extract)
-       - avoid `--model` overrides unless the user requests them and pass `-c model_reasoning_effort="low"` by default; raise the effort only with explicit approval
-       - write outputs under predictable paths such as `child_outputs/<id>.md`
-     - size `timeout_ms` to the subtask: start with 5 minutes for lightweight work, allow up to 15 minutes for heavier runs, and wrap with `timeout` at the script level. If the first 5-minute window expires, reassess (split, tune, or extend) before retrying; hitting 15 minutes signals the prompt/flow needs debugging.
-     - Implements parallelism via `xargs -P`, GNU Parallel, or background jobs + `wait`; default to 8 concurrent workers unless the task or infrastructure requires a different setting.
-     - Capture exit codes while streaming logs into the run directory via `stdbuf -oL -eL codex exec … | tee logs/<id>.log` so operators can `tail -f` progress in real time.
+    - Build a rerunnable driver script (e.g., `run_children.sh`) that:
+      - Reads the subtask manifest (JSON/CSV) and dispatches each entry.
+      - Invokes `codex exec` per subtask with recommended flags:
+        - always use `--sandbox workspace-write` and do **not** add `-c sandbox_workspace_write.network_access=true`
+        - explicitly forbid direct network commands such as `wget`/`curl`; all external data must flow through MCP tools (prefer tavily_search / tavily_extract)
+        - avoid `--model` overrides unless the user requests them and pass `-c model_reasoning_effort="low"` by default; raise the effort only with explicit approval
+        - write outputs under predictable paths such as `child_outputs/<id>.md`
+      - size `timeout_ms` to the subtask: start with 5 minutes for lightweight work, allow up to 15 minutes for heavier runs, and wrap with `timeout` at the script level. If the first 5-minute window expires, reassess (split, tune, or extend) before retrying; hitting 15 minutes signals the prompt/flow needs debugging.
+      - Prefer explicit loops with background jobs (or queue-based throttling) so long prompts are not truncated by shell limits; if you fall back to `xargs`/GNU Parallel, dry-run a small batch first to confirm argument expansion. Default concurrency is 8 workers, adjustable for hardware or quota constraints.
+      - Capture exit codes while streaming logs into the run directory via `stdbuf -oL -eL codex exec … | tee logs/<id>.log` so operators can `tail -f` progress in real time.
+      - Remember that `codex exec` does **not** accept flags like `--output` or `--log-level`; send output through pipes to write files, check the correct `PIPESTATUS` index when chaining commands, and run `codex exec --help` whenever you need to confirm supported arguments.
    - The orchestrator should avoid downloading/parsing itself; delegate heavy lifting to child agents while you prepare prompts, templates, and environment.
 
 4. **Design child prompts**
