@@ -85,6 +85,7 @@ When a user mentions “Wide Research” or references this file, load these ins
 - **Read fully before summarizing**: do not truncate by fixed length (e.g., first 500 chars). Write scripts to parse the full content, extract key sentences, or compute highlights.
 - **Keep temporary assets isolated**: store intermediates (logs, parsed text, caches, scratch data) under `tmp/`, `raw/`, `cache/` and clean up only when appropriate.
 - **Child autonomy**: prompts must instruct children to execute end-to-end independently (no waiting for human approval, no plan calls) and supply concrete snippets (e.g., Python templates, `curl` commands) so they can act immediately.
+- **Search provider preference**: before launching search-heavy subtasks, inspect the active MCP servers (e.g., via `codex mcp list`). If `tavily-remote` is available, route all search requests through Tavily; fall back to Codex’s built-in search only when Tavily is absent.
 
 ## Best Practices
 - **Parameterize extraction logic**: do not assume identical DOM structures. Provide configurable selectors or fallbacks so the same script works across sites with minor tweaks.
