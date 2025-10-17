@@ -53,19 +53,24 @@ When a user mentions “Wide Research” or references this file, load these ins
    - Track for each child: start/end time, duration, status.
    - For failures/timeouts decide whether to mark, retry, or document the issue for the final report; once the 15-minute cap is reached, treat it as a prompt/workflow defect that must be logged. Encourage users to `tail -f logs/<id>.log` during long runs.
 
-6. **Programmatic aggregation**
-   - Use scripts (e.g., `aggregate.py`) to load all Markdown files under `child_outputs/` in one pass and concatenate them—preserving the intended order—into a single master Markdown document.
-   - Emit a master Markdown report (e.g., `runs/<...>/final_report.md`) that keeps child citations and synthesized insights inline so everything lives in one place.
+6. **Programmatic aggregation (baseline draft)**
+   - Run your aggregation script (e.g., `aggregate.py`) to read every Markdown file in `child_outputs/` and stitch them—keeping the intended order—into an initial master document such as `runs/<...>/final_report.md`.
+   - Preserve child citations and wording; this file serves as the raw material for polishing rather than the finished deliverable.
 
-7. **Final review & minor fixes**
-   - Sanity-check aggregated results.
-   - Apply targeted programmatic fixes (spelling, field order, missing metadata, chapter ordering) without rewriting the overall document or heavily altering child content.
-   - Optionally create a README or metadata file to document extra context.
+7. **Digest the aggregate & design the outline**
+   - Read through `final_report.md` and key child outputs to inventory coverage, duplication, gaps, and “to-verify” notes; capture findings in `notes.md` or a similar log.
+   - Draft a polished-report outline (e.g., `polish_outline.md`) that defines target audience, chapter order, and which sources feed each section.
+   - Before writing, summarize workflow takeaways, technical quirks, or improvement ideas so the next run can reuse them.
 
-8. **Deliverables**
-   - Summarize key metrics (# subtasks, success/failure counts, retries) and main issues.
-   - Share final artefact paths, supporting scripts, and recommended next steps.
-   - Highlight the run directory so the user can inspect or rerun.
+8. **Section-by-section polishing**
+   - Create a refined draft file (e.g., `polished_report.md`) and flesh it out one section at a time, validating facts, citations, and language requirements after each chapter.
+   - Avoid rewriting the entire document in one pass; iterative chapters reduce context drift and make it easier to track adjustments. Note key decisions, issues, and fixes as you go.
+   - Normalize duplicated content, citation style, and “to-confirm” items while keeping critical facts and metrics intact.
+
+9. **Deliverables**
+   - Ensure the polished draft meets customer-ready standards (coherent structure, unified tone, accurate citations) and treat it as the final report.
+   - In the final response, recap the main findings and actionable recommendations, and link to the finished report; mention follow-up items only when necessary.
+   - Do not attach intermediate drafts or internal notes to the customer-facing handoff—deliver a single, polished artefact.
 
 ## Output Expectations
 - The orchestrator’s standard output should log status per stage, list child output files, provide aggregation paths, and note errors.
