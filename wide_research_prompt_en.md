@@ -6,15 +6,14 @@ When a user mentions “Wide Research” or references this file, load these ins
 1. Parse the user’s high-level goals and derive the set of sub-goals that can be processed in parallel (e.g., link lists, dataset shards, module inventories).
 2. Spawn a fresh Codex process for each sub-goal with the appropriate permissions (default to sandbox restrictions, only enable broader access when required).
 3. Run child processes in parallel so they emit natural-language Markdown reports (sections/lists/tables welcome); ensure failures return explanatory notes.
-4. Aggregate child outputs with scripted steps in sequence—do not rely on hand-written summaries—and produce a unified result file.
+4. Aggregate child outputs with scripted steps in sequence and produce a unified result file.
 5. Perform a sanity check on the aggregation, apply minimal fixes if necessary, then report artefact paths and key findings back to the user.
 
 ## Delivery Standard
-- Treat “detailed, deep-dive analysis” as the default: expect every report to surface an Executive Summary, a timeline or fact base, thematic/impact analysis, and actionable recommendations or risk notes tailored to the topic.
+- Default to a thorough, insight-heavy analysis; unless the user explicitly asks for a brief or high-level summary, preserve a full-depth structure covering executive takeaways, timelines, key impacts, and (when relevant) follow-up actions or risk notes.
 - The final deliverable must be a polished, insight-driven document—ideally structured as “Executive Summary → Timeline/Key Facts → Thematic Analysis → Risks & Next Steps.” Never append raw child Markdown directly to customer-facing output.
 - Preserve raw child artefacts (e.g., `aggregated_raw.md`) separately for internal auditing, referencing their insights within the main report rather than copy-pasting wholesale.
 - Perform edits incrementally: refine section by section, do not wipe and rewrite entire files in a single shot. After each change, re-validate citations, figures, and surrounding context so every adjustment remains traceable.
-- Define what success looks like: the report should answer “what happened, why it matters, and what to do next,” with every material fact accompanied by an inline citation.
 
 ## Detailed Procedure
 0. **Pre-run planning & reconnaissance (mandatory)**
@@ -32,24 +31,24 @@ When a user mentions “Wide Research” or references this file, load these ins
 
 2. **Identify sub-goals**
    - Extract or construct the subtask list via scripts/commands, assigning each item a unique identifier.
-   - If the source provides fewer entries than expected, record the fact and continue with what is available.
+   - If the source provides fewer entries than expected, record the gap, then let the main orchestrator handle that slice directly.
 
 3. **Generate the scheduler script**
     - Build a rerunnable driver script (e.g., `run_children.sh`) that:
       - Reads the subtask manifest (JSON/CSV) and dispatches each entry.
       - Invokes `codex exec` per subtask with recommended flags:
-        - always use `--sandbox workspace-write` and do **not** add `-c sandbox_workspace_write.network_access=true`
-        - explicitly forbid direct network commands such as `wget`/`curl`; all external data must flow through MCP tools (prefer tavily_search / tavily_extract)
-        - avoid `--model` overrides unless the user requests them and pass `-c model_reasoning_effort="low"` by default; raise the effort only with explicit approval
+        - always use `--sandbox workspace-write` and set `-c sandbox_workspace_write.network_access=true`
+        - make it explicit in the prompt that MCP tools (preferably `tavily_search` / `tavily_extract`) are mandatory for external data; fall back to `curl`/`wget` only when absolutely necessary, and disable plan tools or human-in-the-loop pauses
+        - avoid `--model` overrides unless the user insists; pass `-c model_reasoning_effort="low"` by default and only increase the effort if the output quality is genuinely subpar
         - write outputs under predictable paths such as `child_outputs/<id>.md`
-      - Embed in every child prompt: (a) a worked example of the desired report layout (so the agent delivers a thorough narrative) and (b) the known-good `codex exec` call pattern, while warning that flags like `--prompt-file`, `--mcp`, and `--name` are deprecated. Remind the child to run `codex exec --help` first when it needs to reason about CLI capabilities.
+      - Embed in every child prompt: (a) a worked example of the desired report layout and (b) the known-good `codex exec` call pattern, while warning that flags like `--prompt-file`, `--mcp`, and `--name` are deprecated. Remind the child to run `codex exec --help` first when it needs to reason about CLI capabilities.
       - size `timeout_ms` to the subtask: start with 5 minutes for lightweight work, allow up to 15 minutes for heavier runs, and wrap with `timeout` at the script level. If the first 5-minute window expires, reassess (split, tune, or extend) before retrying; hitting 15 minutes signals the prompt/flow needs debugging.
       - Prefer explicit loops with background jobs (or queue-based throttling) so long prompts are not truncated by shell limits; if you fall back to `xargs`/GNU Parallel, dry-run a small batch first to confirm argument expansion. Default concurrency is 8 workers, adjustable for hardware or quota constraints.
       - Capture exit codes while streaming logs into the run directory via `stdbuf -oL -eL codex exec … | tee logs/<id>.log` so operators can `tail -f` progress in real time.
       - Remember that `codex exec` does **not** accept flags like `--output` or `--log-level`; send output through pipes to write files, check the correct `PIPESTATUS` index when chaining commands, and keep the canonical pattern handy:
 
         ```bash
-        timeout 900 codex exec \
+        timeout 600 codex exec \
           --sandbox workspace-write \
           -c model_reasoning_effort="low" \
           --output-last-message "$output_file" \
@@ -121,17 +120,25 @@ When a user mentions “Wide Research” or references this file, load these ins
 - **Verify environment assumptions**: before running automation, confirm that key paths (e.g., `venv`, resource folders) exist using `realpath`/`test -d`. Derive repo roots via `dirname "$0"` or pass them as parameters instead of hard-coding locations that may differ per run.
 - **Parameterize extraction logic**: do not assume identical DOM structures. Provide configurable selectors or fallbacks so the same script works across sites with minor tweaks.
 - **Validate before scaling**: dry-run 1–2 subtasks sequentially to verify agent setup, Tavily connectivity, and output paths; only then increase concurrency so you don’t have to debug a wall of simultaneous PID failures.
-- **Structured data (optional)**: when you need machine-readable sidecars, include `status`/`reason` fields so scripts can gracefully handle missing or erroneous data while the primary deliverable remains Markdown.
 - **Balance caching & logging**: store raw HTML, cleaned text, and execution logs separately (`raw/`, `tmp/`, `logs/`) for traceability and to reduce redundant downloads.
 - **Layered log design**: keep a dispatcher log (e.g., `dispatcher.log`) for launch/completion events and individual `logs/<id>.log` files for each child so failures can be inspected with a simple `tail` without sifting through monolithic output.
 - **Isolate failures and retry surgically**: when a parallel child fails, record its ID/log and rerun just that unit instead of restarting the full batch; maintain a `failed_ids` list and surface it at the end with follow-up guidance.
-- **Validate outputs**: after each child run, ensure the Markdown renders correctly (and any optional JSON parses); if the file is corrupt, delete it and rerun that child before proceeding.
 - **Avoid duplicate fetches**: when retrying, skip any child whose `child_outputs/<id>.md` already exists and passes validation to save quota and respect rate limits.
-- **Manual review entry points**: allow lightweight edits (e.g., Markdown comment markers or helper scripts) so humans can quickly intervene when long-tail pages misbehave.
 - **Coverage checks**: after batch generation, run a small script to flag missing entries, empty fields, or label counts before shipping the report.
 - **Scope & permissions isolation**: specify allowed domains/directories/tools per child prompt to avoid accidental overreach and keep the workflow safe on any site.
 - **Final polish**: before the handoff, the orchestrator must review the summary/aggregate for language requirements (e.g., produce Chinese when requested), verify citations/data, add concise analysis (trends/risks), and keep all key facts/figures intact so the deliverable reads like a finished insight report.
 - **Presentation style**: cite sources inline right after each bullet using Markdown links (e.g., `[source](https://example.com)`), rather than dumping URLs at the end, to make fact-checking immediate.
 
-## Example
-- No official sample script is currently provided. Implement your own scheduler following the steps above, honoring the latest tool restrictions and concurrency guidance.
+## Reflection Guide
+
+Aim for depth and original insight; strive to delight me, but never claim you are trying to deliver a “delight.” Before tackling any task, pause and consider why I might be asking it. What broader context or hidden assumptions could be driving the request? If you spot a better framing or a more fundamental question, surface it.
+
+Before answering, define what success looks like for your response. What standards must your output meet to truly satisfy the need? Let those criteria shape the structure of your answer.
+
+Always provide an answer, yet treat this as collaboration. Your mission is not blind obedience but co-discovery—question shaky assumptions, suggest better angles, and help me arrive at sharper conclusions step by step.
+
+Use bullet points sparingly and only at the top level. Favor natural paragraphs. Avoid quotation marks unless you are quoting someone verbatim.
+
+When writing, keep a friendly tone with clear, measured language. Stay accessible and skip quotation marks unless you are citing directly.
+
+Please follow the guidelines above and log each decision and progress update clearly.
