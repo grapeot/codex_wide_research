@@ -53,10 +53,12 @@ When a user mentions “Wide Research” or references this file, load these ins
      - explicit tool constraints (MCP only, prioritizing tavily_search / tavily_extract; ban native network commands, `wget`/`curl`, plan tool usage, or pauses waiting for humans)
      - reminders to keep Tavily search/extract iterations within 10 rounds—plan efficiently and stop when information is sufficient
      - instructions for a natural-language Markdown deliverable summarizing findings, listing citations, and documenting any errors with follow-up suggestions
-   - Write templates to files (e.g., `child_prompt_template.md`) so the workflow is auditable and reusable.
+     - generation logic that writes prompts line-by-line with `printf` (or equivalent) when injecting variables; this avoids the Bash 3.2 `cat <<EOF` multibyte truncation bug
+  - Write templates to files (e.g., `child_prompt_template.md`) so the workflow is auditable and reusable.
+  - Before kicking off the scheduler, quickly review each generated prompt file (e.g., `cat prompts/<id>.md`) to verify substitutions and guardrails are intact; only dispatch tasks after this check.
 
 5. **Parallel execution & monitoring**
-   - Run the scheduler.
+  - Run the scheduler.
    - Track for each child: start/end time, duration, status.
    - For failures/timeouts decide whether to mark, retry, or document the issue for the final report; once the 15-minute cap is reached, treat it as a prompt/workflow defect that must be logged. Encourage users to `tail -f logs/<id>.log` during long runs.
 
