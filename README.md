@@ -76,10 +76,11 @@ Codex收到这个任务以后首先会做一个计划，让用户确认。确认
    - 在实验环境下，可将 `/approve` 设为 `Full Access` 以避免频繁人工确认。
 
 2. **可选 MCP Server**
-   - 可以运行下面的指令安装两个MCP server。这两个server不是硬性依赖（装不上也没事）。但可以增强Codex的能力。
+   - 可以运行下面的指令安装两个MCP server。这两个server不是硬性依赖（装不上也没事）。但可以增强Codex的能力。如果你需要进行互联网调研的话，[Tavily](https://www.tavily.com/)会显著提升速度，但这也是个付费服务。
      ```bash
       codex mcp add playwright -- npx @playwright/mcp@latest
       codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
+      codex mcp add tavily-remote -- npx -y mcp-remote "https://mcp.tavily.com/mcp/?tavilyApiKey=<YOUR_API_KEY>"
      ```
 ### 5. 使用步骤
 
@@ -159,10 +160,11 @@ The repository supplies reusable Wide Research scaffolding:
    - In experimental environments, set `/approve` to `Full Access` so Codex doesn’t pause for frequent confirmations.
 
 2. **Optional MCP servers**
-   - Install two non-mandatory servers to expand Codex’s abilities:
+   - Install optional servers to expand Codex’s abilities. If you need intensive web research, [Tavily](https://www.tavily.com/) greatly speeds things up, though it is a paid service.
      ```bash
       codex mcp add playwright -- npx @playwright/mcp@latest
       codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
+      codex mcp add tavily-remote -- npx -y mcp-remote "https://mcp.tavily.com/mcp/?tavilyApiKey=<YOUR_API_KEY>"
      ```
 
 ### 5. Usage
