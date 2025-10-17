@@ -78,7 +78,7 @@ Codex收到这个任务以后首先会做一个计划，让用户确认。确认
 2. **可选 MCP Server**
    - 可以运行下面的指令安装两个MCP server。这两个server不是硬性依赖（装不上也没事）。但可以增强Codex的能力。
      ```bash
-      codex mcp add playright -- npx @playwright/mcp@latest
+      codex mcp add playwright -- npx @playwright/mcp@latest
       codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
      ```
 ### 5. 使用步骤
@@ -161,7 +161,7 @@ The repository supplies reusable Wide Research scaffolding:
 2. **Optional MCP servers**
    - Install two non-mandatory servers to expand Codex’s abilities:
      ```bash
-      codex mcp add playright -- npx @playwright/mcp@latest
+      codex mcp add playwright -- npx @playwright/mcp@latest
       codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
      ```
 
