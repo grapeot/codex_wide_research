@@ -13,6 +13,7 @@
 - 成品稿须为结构化、洞察驱动的整体；禁止在最终交付物中直接拼接子任务原始 Markdown。
 - 如需保留子任务原文，另存为内部文件（如 `aggregated_raw.md`），并在成品中通过概述或引用吸收关键洞察。
 - 润色与修订必须逐段进行，不得整篇删除后一次性重写；每次修改后都要核对引用、数据与上下文，确保变更可追溯。
+- 默认输出详实、有深度的分析报告，至少覆盖“核心摘要”“时间线洞察”“关键影响/启示”三大模块，并根据主题补充行动建议或风险评估。
 
 ## 详细流程
 0. **预执行规划与摸底（必做）**
@@ -40,6 +41,15 @@
         - 明确在环境变量或 prompt 中禁止 `wget`、`curl` 等直接联网命令；所有联网需求必须调用 MCP（优先 tavily_search / tavily_extract）。
         - 非经用户要求不要传入 `--model`，默认附带 `-c model_reasoning_effort="low"`；仅在获得授权后再提高推理档位。
         - 指定输出文件路径（如 `child_outputs/<id>.md`）。
+      - 在子任务 prompt 中提供清晰的报告结构示例以及可行的 Codex CLI 调用范式；明确禁止使用已废弃参数（如 `--prompt-file`、`--mcp`、`--name`），并提醒先执行 `codex exec --help` 获取最新说明。推荐引用如下调用模板：
+
+        ```bash
+        timeout 900 codex exec \
+          --sandbox workspace-write \
+          -c model_reasoning_effort="low" \
+          --output-last-message "$output_file" \
+          - <"$prompt_file"
+        ```
       - 根据任务规模设置 `timeout_ms`：小任务先给 5 分钟，较大任务可放宽到最多 15 分钟，并在脚本层面用 `timeout` 命令做兜底。首次命中 5 分钟超时时，结合任务实际判断是否需要拆分或调整参数再重试；若 15 分钟仍未完成，视作 prompt 或流程需要排查。
       - 推荐以循环 + 后台任务（或队列控制）实现并行，确保 prompt 文本不会因命令行长度受限导致失败；如确需 `xargs`/GNU Parallel，务必先在小规模上验证参数展开。默认并行 8 个任务，可根据硬件或配额调整。
       - 捕获每个子进程的退出码，将日志写入工作目录，并通过 `stdbuf -oL -eL codex exec … | tee logs/<id>.log` 等方式实时刷新，方便 `tail -f` 观察进度。

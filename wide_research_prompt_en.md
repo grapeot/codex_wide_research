@@ -10,6 +10,7 @@ When a user mentions “Wide Research” or references this file, load these ins
 5. Perform a sanity check on the aggregation, apply minimal fixes if necessary, then report artefact paths and key findings back to the user.
 
 ## Delivery Standard
+- Treat “detailed, deep-dive analysis” as the default: expect every report to surface an Executive Summary, a timeline or fact base, thematic/impact analysis, and actionable recommendations or risk notes tailored to the topic.
 - The final deliverable must be a polished, insight-driven document—ideally structured as “Executive Summary → Timeline/Key Facts → Thematic Analysis → Risks & Next Steps.” Never append raw child Markdown directly to customer-facing output.
 - Preserve raw child artefacts (e.g., `aggregated_raw.md`) separately for internal auditing, referencing their insights within the main report rather than copy-pasting wholesale.
 - Perform edits incrementally: refine section by section, do not wipe and rewrite entire files in a single shot. After each change, re-validate citations, figures, and surrounding context so every adjustment remains traceable.
@@ -41,10 +42,19 @@ When a user mentions “Wide Research” or references this file, load these ins
         - explicitly forbid direct network commands such as `wget`/`curl`; all external data must flow through MCP tools (prefer tavily_search / tavily_extract)
         - avoid `--model` overrides unless the user requests them and pass `-c model_reasoning_effort="low"` by default; raise the effort only with explicit approval
         - write outputs under predictable paths such as `child_outputs/<id>.md`
+      - Embed in every child prompt: (a) a worked example of the desired report layout (so the agent delivers a thorough narrative) and (b) the known-good `codex exec` call pattern, while warning that flags like `--prompt-file`, `--mcp`, and `--name` are deprecated. Remind the child to run `codex exec --help` first when it needs to reason about CLI capabilities.
       - size `timeout_ms` to the subtask: start with 5 minutes for lightweight work, allow up to 15 minutes for heavier runs, and wrap with `timeout` at the script level. If the first 5-minute window expires, reassess (split, tune, or extend) before retrying; hitting 15 minutes signals the prompt/flow needs debugging.
       - Prefer explicit loops with background jobs (or queue-based throttling) so long prompts are not truncated by shell limits; if you fall back to `xargs`/GNU Parallel, dry-run a small batch first to confirm argument expansion. Default concurrency is 8 workers, adjustable for hardware or quota constraints.
       - Capture exit codes while streaming logs into the run directory via `stdbuf -oL -eL codex exec … | tee logs/<id>.log` so operators can `tail -f` progress in real time.
-      - Remember that `codex exec` does **not** accept flags like `--output` or `--log-level`; send output through pipes to write files, check the correct `PIPESTATUS` index when chaining commands, and run `codex exec --help` whenever you need to confirm supported arguments.
+      - Remember that `codex exec` does **not** accept flags like `--output` or `--log-level`; send output through pipes to write files, check the correct `PIPESTATUS` index when chaining commands, and keep the canonical pattern handy:
+
+        ```bash
+        timeout 900 codex exec \
+          --sandbox workspace-write \
+          -c model_reasoning_effort="low" \
+          --output-last-message "$output_file" \
+          - <"$prompt_file"
+        ```
    - The orchestrator should avoid downloading/parsing itself; delegate heavy lifting to child agents while you prepare prompts, templates, and environment.
 
 4. **Design child prompts**
