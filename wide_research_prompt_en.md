@@ -113,4 +113,4 @@ When a user mentions “Wide Research” or references this file, load these ins
 - **Presentation style**: cite sources inline right after each bullet using Markdown links (e.g., `[source](https://example.com)`), rather than dumping URLs at the end, to make fact-checking immediate.
 
 ## Example
-- `scripts/wide_research_example.sh` demonstrates the end-to-end flow: caching an index, generating child prompts, running `codex exec` in parallel, and validating the Markdown reports produced by children. The script first fetches `https://yage.ai/tag/deepseek.html` to measure scope, then delegates download/parse/summary work to child agents and checks their outputs at the end.
+- No official sample script is currently provided. Implement your own scheduler following the steps above, honoring the latest tool restrictions and concurrency guidance.
