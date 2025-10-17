@@ -54,13 +54,12 @@ When a user mentions “Wide Research” or references this file, load these ins
    - For failures/timeouts decide whether to mark, retry, or document the issue for the final report; once the 15-minute cap is reached, treat it as a prompt/workflow defect that must be logged. Encourage users to `tail -f logs/<id>.log` during long runs.
 
 6. **Programmatic aggregation**
-   - Use scripts (e.g., `aggregate.py`) to read each Markdown file in `child_outputs/` **one at a time**—append it to the master document before loading the next to avoid over-consuming memory.
-   - Emit a master Markdown report (e.g., `runs/<...>/final_report.md`) with embedded citations and synthesized insights.
-   - Log merge decisions (deduplication, gap handling) so the process remains auditable.
+   - Use scripts (e.g., `aggregate.py`) to load all Markdown files under `child_outputs/` in one pass and concatenate them—preserving the intended order—into a single master Markdown document.
+   - Emit a master Markdown report (e.g., `runs/<...>/final_report.md`) that keeps child citations and synthesized insights inline so everything lives in one place.
 
 7. **Final review & minor fixes**
    - Sanity-check aggregated results.
-   - Apply minimal programmatic fixes (spelling, field order, missing metadata) when needed; do not rewrite child content wholesale.
+   - Apply targeted programmatic fixes (spelling, field order, missing metadata, chapter ordering) without rewriting the overall document or heavily altering child content.
    - Optionally create a README or metadata file to document extra context.
 
 8. **Deliverables**
