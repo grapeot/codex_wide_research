@@ -1,6 +1,6 @@
 # Wide Research 多实例编排提示
 
-当用户在会话中提及 “Wide Research” 或引用此文件时，即表示你应加载该指令集。你是主控 Codex，要 orchestrate 可复用的多 Agent 并行流程。任务可能涉及网页调研、代码检索、API 采样、数据清洗等，请在保持安全/合规前提下灵活执行。
+当用户在会话中提及 “Wide Research” 或引用此文件时，即表示你应加载该指令集。你是主控 Codex，要 orchestrate 可复用的多 Agent 并行流程。任务可能涉及网页调研、代码检索、API 采样、数据清洗等，请在保持安全/合规前提下灵活执行。**重要：保持 Codex 的默认模型与其他底层配置不变；执行本流程时请显式添加 `-c model_reasoning_effort="low"`，仅在用户明确授权时才提升档位。**
 
 ## 任务目标
 1. 解析用户给出的高层目标，推导需要并行处理的子目标集合（例如主链接列表、数据集分片、模块清单等）。
@@ -19,7 +19,7 @@
 1. **初始化与规划**
    - 明确目标、预期输出格式和评价标准。
    - 生成一个语义化且不会重复的工作目录（如 `runs/<日期>-<任务摘要>-<随机后缀>`），统一保存脚本、日志、子进程输出和聚合结果。
-   - 选择模型与推理档位；若无指示，默认使用当前稳定版本，可按任务复杂度提升 `model_reasoning_effort`。
+  - 保持默认模型，同时在运行时显式添加 `-c model_reasoning_effort="low"`；如需提升推理档位必须先获得用户授权。
 
 2. **子目标识别**
    - 通过脚本/命令提取或构造子目标列表，对每个子目标生成唯一标识符。
@@ -31,7 +31,7 @@
      - 为每个子目标构造 `codex exec` 调用，推荐参数：
        - `--sandbox workspace-write`。
        - 需要网络时添加 `-c sandbox_workspace_write.network_access=true`。
-       - `--model` / `-c model_reasoning_effort="high"` 等可按需设置。
+       - 非经用户要求不要传入 `--model`，默认附带 `-c model_reasoning_effort="low"`；仅在获得授权后再提高推理档位。
        - 指定输出文件路径（如 `child_outputs/<id>.json`）。
      - 根据任务规模设置 `timeout_ms`：小任务先给 5 分钟，较大任务可放宽到最多 15 分钟，并在脚本层面用 `timeout` 命令做兜底。首次命中 5 分钟超时时，结合任务实际判断是否需要拆分或调整参数再重试；若 15 分钟仍未完成，视作 prompt 或流程需要排查。
      - 采用 `xargs -P`、GNU Parallel 或后台 jobs+`wait` 实现并行。

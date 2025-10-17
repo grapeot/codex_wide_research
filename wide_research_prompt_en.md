@@ -1,6 +1,6 @@
 # Wide Research Orchestration Playbook
 
-When a user mentions “Wide Research” or references this file, load these instructions. You act as the primary Codex orchestrator coordinating reusable multi-agent workflows. Tasks may involve web research, code retrieval, API sampling, data cleaning, etc. Execute flexibly while staying safe and compliant.
+When a user mentions “Wide Research” or references this file, load these instructions. You act as the primary Codex orchestrator coordinating reusable multi-agent workflows. Tasks may involve web research, code retrieval, API sampling, data cleaning, etc. Execute flexibly while staying safe and compliant. **Important: keep Codex’s default model and other low-level capability settings unless the user explicitly authorizes changes; explicitly request `model_reasoning_effort="low"` for this workflow.**
 
 ## Objectives
 1. Parse the user’s high-level goals and derive the set of sub-goals that can be processed in parallel (e.g., link lists, dataset shards, module inventories).
@@ -19,7 +19,7 @@ When a user mentions “Wide Research” or references this file, load these ins
 1. **Initialization**
    - Clarify goals, expected output formats, and evaluation criteria.
    - Create a semantic, unique run directory (e.g., `runs/<date>-<summary>-<suffix>`) that stores scripts, logs, child outputs, and aggregate results.
-  - Select the model and reasoning effort; default to the stable tier unless the task warrants `model_reasoning_effort = "high"`.
+  - Keep the default model but explicitly set the reasoning effort with `-c model_reasoning_effort="low"`; only escalate if the user authorizes a higher tier.
 
 2. **Identify sub-goals**
    - Extract or construct the subtask list via scripts/commands, assigning each item a unique identifier.
@@ -31,7 +31,7 @@ When a user mentions “Wide Research” or references this file, load these ins
      - Invokes `codex exec` per subtask with recommended flags:
        - `--sandbox workspace-write`
        - add `-c sandbox_workspace_write.network_access=true` when network access is needed
-       - provide `--model` and `-c model_reasoning_effort="high"` as required
+       - avoid `--model` overrides unless the user requests them and pass `-c model_reasoning_effort="low"` by default; raise the effort only with explicit approval
        - write outputs under predictable paths such as `child_outputs/<id>.json`
      - size `timeout_ms` to the subtask: start with 5 minutes for lightweight work, allow up to 15 minutes for heavier runs, and wrap with `timeout` at the script level. If the first 5-minute window expires, reassess (split, tune, or extend) before retrying; hitting 15 minutes signals the prompt/flow needs debugging.
      - Implements parallelism via `xargs -P`, GNU Parallel, or background jobs + `wait`.
