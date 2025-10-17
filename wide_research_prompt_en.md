@@ -88,7 +88,7 @@ When a user mentions “Wide Research” or references this file, load these ins
 - **Keep temporary assets isolated**: store intermediates (logs, parsed text, caches, scratch data) under `tmp/`, `raw/`, `cache/` and clean up only when appropriate.
 - **Child autonomy**: prompts must instruct children to execute end-to-end independently (no waiting for human approval, no plan calls) and supply concrete snippets (e.g., Python templates, `curl` commands) so they can act immediately.
 - **Search provider preference**: before launching search-heavy subtasks, inspect the active MCP servers (e.g., via `codex mcp list`). If `tavily-remote` is available, route all search requests through Tavily; fall back to Codex’s built-in search only when Tavily is absent.
-- **Tavily request settings**: default to `max_results=6` (raise to 10 if coverage is lacking), set `search_depth="advanced"`, and enable `include_answer` or `include_raw_content` so responses return summaries or raw content instead of bare URLs.
+- **Tavily request settings**: default to `max_results=6` (raise to 10 if coverage is lacking), set `search_depth="advanced"`, and set `include_answer="advanced"` so responses include Tavily’s synthesized summary. Add `include_images` / `include_image_descriptions` when visuals help, and avoid `include_raw_content` to prevent oversized payloads; note that `include_answer` must be the string `"advanced"`, not a boolean.
 - **Image retrieval with Tavily**: Tavily’s MCP server can return images. Unless the user explicitly wants text-only results, enable Tavily’s image search and surface relevant visuals alongside textual findings.
 
 ## Best Practices
@@ -96,9 +96,13 @@ When a user mentions “Wide Research” or references this file, load these ins
 - **Validate before scaling**: dry-run 1–2 subtasks sequentially to confirm parsing/aggregation, then fan out in parallel to avoid mass failures.
 - **Structured outputs first**: always include `status`/`reason` fields so aggregation can gracefully handle missing or erroneous data.
 - **Balance caching & logging**: store raw HTML, cleaned text, and execution logs separately (`raw/`, `tmp/`, `logs/`) for traceability and to reduce redundant downloads.
+- **Validate JSON outputs**: after each child run, confirm the resulting JSON parses; if it fails, delete the bad file and rerun that child before proceeding.
+- **Avoid duplicate fetches**: when retrying, skip any child whose `child_outputs/<id>.json` already exists and passes validation to save quota and respect rate limits.
 - **Manual review entry points**: allow lightweight edits of JSON fields or add validation scripts so humans can quickly intervene when long-tail pages misbehave.
 - **Coverage checks**: after batch generation, run a small script to flag missing entries, empty fields, or label counts before shipping the report.
 - **Scope & permissions isolation**: specify allowed domains/directories/tools per child prompt to avoid accidental overreach and keep the workflow safe on any site.
+- **Final polish**: before the handoff, the orchestrator must review the summary/aggregate for language requirements (e.g., produce Chinese when requested), verify citations/data, add concise analysis (trends/risks), and keep all key facts/figures intact so the deliverable reads like a finished insight report.
+- **Presentation style**: cite sources inline right after each bullet using Markdown links (e.g., `[source](https://example.com)`), rather than dumping URLs at the end, to make fact-checking immediate.
 
 ## Example
 - `scripts/wide_research_example.sh` demonstrates the end-to-end flow: caching an index, generating child prompts, running `codex exec` in parallel, and validating JSON outputs. The script first fetches `https://yage.ai/tag/deepseek.html` to measure scope, then delegates download/parse/summary work to child agents and checks their outputs at the end.
