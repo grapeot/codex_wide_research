@@ -100,10 +100,13 @@ When a user mentions “Wide Research” or references this file, load these ins
 - **Image retrieval with Tavily**: Tavily’s MCP server can return images. Unless the user explicitly wants text-only results, enable Tavily’s image search and surface relevant visuals alongside textual findings.
 
 ## Best Practices
+- **Verify environment assumptions**: before running automation, confirm that key paths (e.g., `venv`, resource folders) exist using `realpath`/`test -d`. Derive repo roots via `dirname "$0"` or pass them as parameters instead of hard-coding locations that may differ per run.
 - **Parameterize extraction logic**: do not assume identical DOM structures. Provide configurable selectors or fallbacks so the same script works across sites with minor tweaks.
-- **Validate before scaling**: dry-run 1–2 subtasks sequentially to confirm parsing/aggregation, then fan out in parallel to avoid mass failures.
+- **Validate before scaling**: dry-run 1–2 subtasks sequentially to verify agent setup, Tavily connectivity, and output paths; only then increase concurrency so you don’t have to debug a wall of simultaneous PID failures.
 - **Structured data (optional)**: when you need machine-readable sidecars, include `status`/`reason` fields so scripts can gracefully handle missing or erroneous data while the primary deliverable remains Markdown.
 - **Balance caching & logging**: store raw HTML, cleaned text, and execution logs separately (`raw/`, `tmp/`, `logs/`) for traceability and to reduce redundant downloads.
+- **Layered log design**: keep a dispatcher log (e.g., `dispatcher.log`) for launch/completion events and individual `logs/<id>.log` files for each child so failures can be inspected with a simple `tail` without sifting through monolithic output.
+- **Isolate failures and retry surgically**: when a parallel child fails, record its ID/log and rerun just that unit instead of restarting the full batch; maintain a `failed_ids` list and surface it at the end with follow-up guidance.
 - **Validate outputs**: after each child run, ensure the Markdown renders correctly (and any optional JSON parses); if the file is corrupt, delete it and rerun that child before proceeding.
 - **Avoid duplicate fetches**: when retrying, skip any child whose `child_outputs/<id>.md` already exists and passes validation to save quota and respect rate limits.
 - **Manual review entry points**: allow lightweight edits (e.g., Markdown comment markers or helper scripts) so humans can quickly intervene when long-tail pages misbehave.
