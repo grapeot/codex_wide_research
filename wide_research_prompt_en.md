@@ -55,6 +55,12 @@ When a user mentions “Wide Research” or references this file, load these ins
           --output-last-message "$output_file" \
           - <"$prompt_file"
         ```
+
+        ```markdown
+        > **Node Insights (sample)**  \n        > - 2024-03-12 | Sample event: major announcement or milestone.[^example1]  \n        > - 2024-04-25 | Sample event: industry or community response.[^example2]
+        ```
+
+        Always replace the sample content and footnotes with real findings before shipping the report.
    - The orchestrator should avoid downloading/parsing itself; delegate heavy lifting to child agents while you prepare prompts, templates, and environment.
 
 4. **Design child prompts**
