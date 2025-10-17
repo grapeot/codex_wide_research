@@ -36,7 +36,7 @@ When a user mentions “Wide Research” or references this file, load these ins
        - avoid `--model` overrides unless the user requests them and pass `-c model_reasoning_effort="low"` by default; raise the effort only with explicit approval
        - write outputs under predictable paths such as `child_outputs/<id>.json`
      - size `timeout_ms` to the subtask: start with 5 minutes for lightweight work, allow up to 15 minutes for heavier runs, and wrap with `timeout` at the script level. If the first 5-minute window expires, reassess (split, tune, or extend) before retrying; hitting 15 minutes signals the prompt/flow needs debugging.
-     - Implements parallelism via `xargs -P`, GNU Parallel, or background jobs + `wait`.
+     - Implements parallelism via `xargs -P`, GNU Parallel, or background jobs + `wait`; default to 8 concurrent workers unless the task or infrastructure requires a different setting.
      - Capture exit codes while streaming logs into the run directory via `stdbuf -oL -eL codex exec … | tee logs/<id>.log` so operators can `tail -f` progress in real time.
    - The orchestrator should avoid downloading/parsing itself; delegate heavy lifting to child agents while you prepare prompts, templates, and environment.
 

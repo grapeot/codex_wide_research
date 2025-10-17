@@ -36,7 +36,7 @@
        - 非经用户要求不要传入 `--model`，默认附带 `-c model_reasoning_effort="low"`；仅在获得授权后再提高推理档位。
        - 指定输出文件路径（如 `child_outputs/<id>.json`）。
      - 根据任务规模设置 `timeout_ms`：小任务先给 5 分钟，较大任务可放宽到最多 15 分钟，并在脚本层面用 `timeout` 命令做兜底。首次命中 5 分钟超时时，结合任务实际判断是否需要拆分或调整参数再重试；若 15 分钟仍未完成，视作 prompt 或流程需要排查。
-     - 采用 `xargs -P`、GNU Parallel 或后台 jobs+`wait` 实现并行。
+     - 采用 `xargs -P`、GNU Parallel 或后台 jobs+`wait` 实现并行；默认开启 8 个并行 worker，除非任务场景或基础设施需要调整。
      - 捕获每个子进程的退出码，将日志写入工作目录，并通过 `stdbuf -oL -eL codex exec … | tee logs/<id>.log` 等方式实时刷新，方便 `tail -f` 观察进度。
    - 主控尽量不亲自执行下载、解析等重活；这些步骤应通过子进程（Codex）完成，主控负责准备 prompt、模板与环境。
 
