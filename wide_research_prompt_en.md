@@ -10,11 +10,11 @@ When a user mentions “Wide Research” or references this file, load these ins
 5. Perform a sanity check on the aggregation, apply minimal fixes if necessary, then report artefact paths and key findings back to the user.
 
 ## Detailed Procedure
-0. **Pre-run planning (mandatory)**
-   - Understand the user intent and context; estimate scope, risks, and required resources.
-   - If the task depends on a public index (tag page, API list, etc.), first cache it via a minimal sandbox fetch, count the entries, and share scale information with the user for confirmation.
-   - Draft an executable plan (subtask breakdown, tools/scripts, outputs, permissions, timeouts) and present it in the user’s language.
-   - Ask explicitly whether to proceed. Do not continue without an affirmative “go/execute” response.
+0. **Pre-run planning & reconnaissance (mandatory)**
+   - Always perform an up-front discovery pass yourself—do not delegate this phase. Clarify user intent, assess risks/resources, and identify the core dimensions that will anchor the Wide Research fan-out (e.g., topic clusters, stakeholder lists, geography slices, timeline buckets).
+   - When public indices (tag pages, API lists, etc.) exist, cache them via minimal sandbox fetches and count entries. Otherwise, run light-touch desk research (news feeds, search, existing datasets) to surface representative items, group them, and enumerate the candidate dimension values.
+   - Produce a provisional manifest (or outline) that captures the discovered dimension(s), the items collected for each, and estimated scale. Highlight data gaps or uncertainties.
+   - Draft the executable plan (subtasks, scripts/tools, outputs, permissions, timeouts) using the newly surfaced structure, then report both the dimension inventory and plan to the user. Wait for an explicit “go/execute” before proceeding.
 
 1. **Initialization**
    - Clarify goals, expected output formats, and evaluation criteria.
