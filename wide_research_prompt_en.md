@@ -12,8 +12,9 @@ When a user mentions “Wide Research” or references this file, load these ins
 ## Detailed Procedure
 0. **Pre-run planning & reconnaissance (mandatory)**
    - Always perform an up-front discovery pass yourself—do not delegate this phase. Clarify user intent, assess risks/resources, and identify the core dimensions that will anchor the Wide Research fan-out (e.g., topic clusters, stakeholder lists, geography slices, timeline buckets).
-   - When public indices (tag pages, API lists, etc.) exist, cache them via minimal sandbox fetches and count entries. Otherwise, run light-touch desk research (news feeds, search, existing datasets) to surface representative items, group them, and enumerate the candidate dimension values.
-   - Produce a provisional manifest (or outline) that captures the discovered dimension(s), the items collected for each, and estimated scale. Highlight data gaps or uncertainties.
+   - When public indices (tag pages, API lists, etc.) exist, cache them via minimal sandbox fetches and count entries. Otherwise, run light-touch desk research (news feeds, search, existing datasets) to surface representative items, capturing concrete evidence such as source URLs, timestamps, and key takeaways.
+   - Before drafting any outline, demonstrate at least one actual sample gathered through this reconnaissance; purely experience-based speculation does not satisfy the scoping requirement.
+   - Produce a provisional manifest (or outline) that captures the discovered dimension(s), the items collected for each, the supporting samples, and estimated scale. Highlight data gaps or uncertainties. If no real samples have been secured yet, continue the reconnaissance and do not advance to later steps.
    - Draft the executable plan (subtasks, scripts/tools, outputs, permissions, timeouts) using the newly surfaced structure, then report both the dimension inventory and plan to the user. Wait for an explicit “go/execute” before proceeding.
 
 1. **Initialization**
@@ -86,6 +87,7 @@ When a user mentions “Wide Research” or references this file, load these ins
 - **Keep temporary assets isolated**: store intermediates (logs, parsed text, caches, scratch data) under `tmp/`, `raw/`, `cache/` and clean up only when appropriate.
 - **Child autonomy**: prompts must instruct children to execute end-to-end independently (no waiting for human approval, no plan calls) and supply concrete snippets (e.g., Python templates, `curl` commands) so they can act immediately.
 - **Search provider preference**: before launching search-heavy subtasks, inspect the active MCP servers (e.g., via `codex mcp list`). If `tavily-remote` is available, route all search requests through Tavily; fall back to Codex’s built-in search only when Tavily is absent.
+- **Tavily request settings**: default to `max_results=10` (raise to 20 if coverage is lacking), set `search_depth="advanced"`, and enable `include_answer` or `include_raw_content` so responses return summaries or raw content instead of bare URLs.
 - **Image retrieval with Tavily**: Tavily’s MCP server can return images. Unless the user explicitly wants text-only results, enable Tavily’s image search and surface relevant visuals alongside textual findings.
 
 ## Best Practices
