@@ -1,172 +1,34 @@
 # Codex Wide Research
 
-- [English Version](#english-version)
-
 ## 中文版
 
-这个repo给[Codex CLI](https://github.com/openai/codex/)加上了Wide Research的功能，大幅增强了它的能力（下文有具体示例）。
+这个 repo 提供一个实验性的 Wide Research 工作流，核心是保持以往的中文说明，但将调研执行交给已经写好的 Python 代码。和 `master` 分支相比，`code_based` 分支最大的不同在于：
 
-### 1. 背景：Manus的Wide Research
+- 不再依赖 Codex 的多轮 Prompt 来完成调研，而是调用仓库内的 `research_agent_code.py`，它集成了 Tavily 搜索、内容抽取与 OpenAI API。
+- 所有相关的提示文件已经重命名/替换为代码导向版本，只保留了中文版 `wide_research_code_prompt_cn.md`，英文版暂时移除。
 
-2025年7月底，Manus 发布了 [Wide Research](https://manus.im/blog/introducing-wide-research)。这个功能可以同时调度上百个通用智能体并行执行任务。官方案例展示了对 100 款运动鞋的市场分析、几十张海报的同步生成等任务。
+### 主要文件
 
-这个功能从产品业务的角度解决了大规模调研的问题，但从技术上看它的意义可能更大。LLM或者说AI，它一大限制就是当输出的长度到了一定程度，比如说占了max context window 50%，或者有时候甚至20%的时候，它就会开始偷懒。比如说让它翻译一个东西，前面做得还挺认真的，但是到中间就开始跳一句翻一句，到后面干脆就不原样翻译，而是一边做缩略一边做翻译。
+- `research_agent_code.py`：基于 Tavily 与 OpenAI 异步 API 的调研代理实现。
+- `wide_research_code_prompt_cn.md`：针对上述代码流程的协调提示，保持原有中文内容主体不变。
+- `requirements.txt`：运行该代理所需的依赖列表，可通过 `uv pip install -r requirements.txt` 安装。
 
-而且这是一个所有LLM都有的普遍规律，严重限制了LLM的实用性。具体表现就是问题一复杂，规模一大就不听话/偷懒。更糟糕的是，大多数AI的用户其实没有意识到这个限制。这就导致很多时候LLM的能力在那里，但大多数用户因为识别不出来这个限制，也不知道怎么绕过去，AI的能力被极大浪费了。
+### 当前状态
 
-Wide Research的核心在于它的“宽上下文”的策略。它用了分而治之的思想，通过把一个问题分解成很多独立的子问题，来把子Agents的上下文窗口分隔开了。这样每个Agent的输出都不会太长。最后再用程序（而不是LLM）把输出合并起来，解决了这个根本性的限制。
+该分支仍在实验阶段，欢迎在本地跑通后反馈使用体验。
 
-我在使用Manus的过程中越来越离不开Wide Research这个功能。而与此同时，我另一个很常用的工具是Codex。相比于其他AI，Codex的AI特别听话、主动、可靠。但即便如此，由于上面所说的output context window的限制，在进行一些类似Wide Research的大规模任务时，它仍然会力不从心。
+### 使用方式（示例）
 
-这是为什么我做了这个 repo，试图给 Codex 一个 prompt 上的指引，从而让它也能实现 Wide Research 的功能。
+1. 确保本地激活 `uv` 创建的虚拟环境，例如：
+   ```bash
+   uv venv venv
+   source venv/bin/activate
+   uv pip install -r requirements.txt
+   ```
+2. 使用 CLI 运行调研代理：
+   ```bash
+   python research_agent_code.py --help
+   ```
+3. 在 Codex CLI 中提及 `wide_research_code_prompt_cn.md`即可启用新的编排提示。
 
-### 2. 实例展示
-
-我们有一个《现代软件工程》课程，其中的一个作业是希望学生把自己的上课感想和问题写成一篇 blog。一共53个学生交了作业，他们的文章分散在不同的网站上。我们一开始试着用了DeepSeek来[做总结](https://www.cnblogs.com/xinz/p/19139660)，但是发现它的结果大都是幻觉。
-
-如果有一个靠谱的AI可以抓取、理解和概括他们的文章内容，并且在这个基础上做出更抽象、更高层的分析，可以省掉老师很多时间。
-
-我们使用这个repo可以完美完成这个任务。使用这样的prompt：
-
-> https://www.cnblogs.com/xinz/p/19139660
-> 
-> 我们在上一门软件工程课的时候录制了一个作业，让学生在 blog 里面对软件工程进行提问。这个页面是一个 AI 总结，但是里面基本上全是幻觉，只有 URL 是正确的。我现在就想看下面几件事情：
-> 
-> 第一，你把里面学生 blog 的姓名和 URL 全部提取出来，但是不要看 AI 总结，那都是幻觉。
-> 
-> 第二，你用 Wide Research 把每一个 blog 阅读一下，总结一下每个学生分别提了什么问题，用标题加简述的形式进行总结。
-> 
-> 第三，你再具体看一下这些总结的结果，看看大家有没有什么共同点或者最关注的话题，设计一个 label taxonomy。
-> 
-> 第四，你再再次调用 Wide Research，针对每篇文章的内容给它们 assign 五个标签。
-> 
-> 第五，你再写一个程序来统计最常见的几个标签。
-> 
-> 第六，你再根据上面所有的内容汇总整理成一个单网页的中文的有深度的分析。它的根本目标是让人一看就知道学生最关心的问题是什么，同时还能点进文章进行核实。要着重强调思维深度，给人惊喜感，让人觉得有顿见，又能轻松验证它的正确性。对于从 Wide Research 中间拿到的结果不要进行缩略，直接放到最终报告里。最终结果发布出来。
->
-> wide_research_prompt_cn.md
-
-注意最后的md文件，这就是repo里面的prompt文件。
-
-Codex收到这个任务以后首先会做一个计划，让用户确认。确认以后在没有人工干预的情况下忙活了半个多小时，生成了[这样一个网页](https://yage.ai/software-engineering-report.html)。
-
-他有几个特征：  
-
-1. 53个学生的结果全出来了。  
-2. 姓名和 URL 之间的对应关系都是对的。  
-3. 不论是 URL 还是题的问题，还是做打的标签，都没有幻觉和错误。
-
-这个是非常难得的。事实上，在使用 Wide Research 之前，我们也试了用其他工具来做这个任务。一般的 AI 工具就不说了，出来的质量很差。唯一做得比较好的是两个工具： 
-
-第一是 Deep Research，由于它可以输出十几个学生的正确结果，但是由于类似 context window 长度的限制，后面更多的学生作业它就没有看了，就没有看和输出了。  
-第二是 Codex，它用纯手工的方法去做，可以输出二十多个学生的概括。但也是由于同样的原因，这样做一方面很慢，另一方面也漏了很多学生。
-
-唯一成功的是Manus的wide research和我们的Codex wide research。
-
-### 3. 项目概述
-
-本仓库提供了一个可复用的 Wide Research 编排脚手架，包含：
-
-- **主控流程**：在 `wide_research_prompt_cn.md` 中定义了 Wide Research 的操作规范。在Codex中@这个文件即可启用。
-- **批量调度脚本**：`scripts/run_children.sh` 是一个barebone示例脚本，帮助Codex规避一些最基础的问题。
-
-### 4. 环境配置
-
-1. **Codex CLI 设置**
-   - 在实验环境下，可将 `/approve` 设为 `Full Access` 以避免频繁人工确认。
-
-2. **可选 MCP Server**
-   - 可以运行下面的指令安装两个MCP server。这两个server不是硬性依赖（装不上也没事）。但可以增强Codex的能力。如果你需要进行互联网调研的话，[Tavily](https://www.tavily.com/)会显著提升速度，但这也是个付费服务。
-     ```bash
-      codex mcp add playwright -- npx @playwright/mcp@latest
-      codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
-      codex mcp add tavily-remote -- npx -y mcp-remote "https://mcp.tavily.com/mcp/?tavilyApiKey=<YOUR_API_KEY>"
-     ```
-### 5. 使用步骤
-
-在会话中引用 `wide_research_prompt_cn.md` 即可。然后在Prompt里提到Wide Research的时候Codex就会知道怎么并行做了。一个示例prompt见第二节。
-
---------------------------------------------------------------------------------
-
-## English Version
-
-This repository adds Wide Research capabilities to the [Codex CLI](https://github.com/openai/codex/), dramatically boosting what it can achieve (see below for a concrete example).
-
-### 1. Background: Manus Wide Research
-
-In late July 2025, Manus released [Wide Research](https://manus.im/blog/introducing-wide-research). The feature can coordinate hundreds of general-purpose agents in parallel. Official showcase tasks include market research for 100 sneakers and simultaneous creation of dozens of posters.
-
-From a product standpoint, it solves the pain of large-scale research. Technically it is even more meaningful. LLMs—or AI in general—have a well-known limitation: once the output consumes a large portion of the maximum context window (say 50%, sometimes even 20%), the model starts “slacking off.” For instance, when asked to translate a long document, it behaves diligently at the beginning, but midway it starts skipping sentences, and near the end it paraphrases instead of translating verbatim.
-
-This pattern appears across all LLMs, severely impacting practical usefulness. As soon as a task becomes complex or scales up, the model stops following instructions and starts slacking off. Worse still, most AI users do not realize this constraint. As a result, tremendous model capacity is wasted because people cannot recognize the issue or work around it.
-
-Wide Research’s core is the “wide context” strategy. It applies divide-and-conquer: break the problem into many independent subtasks, isolate each agent’s context window, keep outputs short, and finally merge everything with code (instead of another LLM). That resolves the fundamental limitation.
-
-I increasingly rely on Manus Wide Research. At the same time, Codex is another indispensable tool because it is obedient, proactive, and reliable. Yet even Codex struggles with massive tasks due to the context-window issue highlighted above.
-
-That is why this repository exists: to provide Codex with a guiding prompt so it can deliver Wide Research-style results.
-
-### 2. Case Study
-
-In the “Modern Software Engineering” course, students had to blog their reflections and questions. Fifty-three students submitted posts hosted across different websites. Our first attempt was to use DeepSeek to [summarize the posts](https://www.cnblogs.com/xinz/p/19139660), but the output was mostly hallucinations.
-
-We wanted a dependable AI assistant that could fetch, understand, and summarize every article—and then produce higher-level analysis. The repository’s prompt handles the job perfectly:
-
-> https://www.cnblogs.com/xinz/p/19139660
-> 
-> During our Modern Software Engineering course we recorded an assignment that asks students to post questions on their blogs. This page is an AI-generated summary, but almost everything on it is hallucinated—the URLs are the only part we can trust. Please do the following tasks:
-> 
-> 1. Extract every student’s name and blog URL from the page, ignoring the hallucinated summary content.
-> 
-> 2. Use Wide Research to read each blog, summarizing the questions every student asks with a title and a short description.
-> 
-> 3. Review the summaries to find any common themes or dominant topics and design a label taxonomy.
-> 
-> 4. Invoke Wide Research again to assign five labels to each article based on its content.
-> 
-> 5. Write a program that counts the most frequent labels.
-> 
-> 6. Combine all findings into a single Chinese webpage that is deeply insightful. Readers should immediately see what the students care about most and be able to click through to verify the original posts. Emphasize depth, surprise the reader with insight, and keep the Wide Research outputs intact in the final report. Publish the finished page.
->
-> wide_research_prompt_en.md
-
-Notice the prompt file at the end—that is exactly the markdown shipped in this repo.
-
-Codex first drafts a plan for confirmation. Once approved, it works autonomously for roughly half an hour and produces [this webpage](https://yage.ai/software-engineering-report.html).
-
-The outcome stands out because:
-
-1. All 53 students are covered.  
-2. Names and URLs match correctly.  
-3. The URLs, questions, and labels contain no hallucinations.
-
-This result is extremely rare. Before adopting Wide Research, we tried multiple tools and saw poor accuracy. Only two workflows performed reasonably well:
-
-- Deep Research returned accurate summaries for about a dozen students, but stalled once context limits kicked in.  
-- A purely manual Codex approach produced summaries for twenty-something students, yet it was slow and still missed many entries.
-
-Only Manus Wide Research and this Codex Wide Research setup completed the entire dataset.
-
-### 3. Project Overview
-
-The repository supplies reusable Wide Research scaffolding:
-
-- **Orchestrator prompt**: `wide_research_prompt_en.md` defines the workflow. Mention it (@-mention) in Codex to activate.
-- **Batch runner**: `scripts/run_children.sh` is a barebones example that helps Codex avoid the most basic pitfalls.
-
-### 4. Environment Setup
-
-1. **Codex CLI settings**
-   - In experimental environments, set `/approve` to `Full Access` so Codex doesn’t pause for frequent confirmations.
-
-2. **Optional MCP servers**
-   - Install optional servers to expand Codex’s abilities. If you need intensive web research, [Tavily](https://www.tavily.com/) greatly speeds things up, though it is a paid service.
-     ```bash
-      codex mcp add playwright -- npx @playwright/mcp@latest
-      codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
-      codex mcp add tavily-remote -- npx -y mcp-remote "https://mcp.tavily.com/mcp/?tavilyApiKey=<YOUR_API_KEY>"
-     ```
-
-### 5. Usage
-
-Reference `wide_research_prompt_en.md` in your conversation. When you mention Wide Research, Codex will know to execute the parallel workflow. The sample prompt above demonstrates the process.
+> 注意：该实验版本主要针对中文调研场景，英文 Wide Research Prompt 已移除。
