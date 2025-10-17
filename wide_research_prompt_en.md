@@ -87,7 +87,7 @@ When a user mentions “Wide Research” or references this file, load these ins
 - **Keep temporary assets isolated**: store intermediates (logs, parsed text, caches, scratch data) under `tmp/`, `raw/`, `cache/` and clean up only when appropriate.
 - **Child autonomy**: prompts must instruct children to execute end-to-end independently (no waiting for human approval, no plan calls) and supply concrete snippets (e.g., Python templates, `curl` commands) so they can act immediately.
 - **Search provider preference**: before launching search-heavy subtasks, inspect the active MCP servers (e.g., via `codex mcp list`). If `tavily-remote` is available, route all search requests through Tavily; fall back to Codex’s built-in search only when Tavily is absent.
-- **Tavily request settings**: default to `max_results=10` (raise to 20 if coverage is lacking), set `search_depth="advanced"`, and enable `include_answer` or `include_raw_content` so responses return summaries or raw content instead of bare URLs.
+- **Tavily request settings**: default to `max_results=6` (raise to 10 if coverage is lacking), set `search_depth="advanced"`, and enable `include_answer` or `include_raw_content` so responses return summaries or raw content instead of bare URLs.
 - **Image retrieval with Tavily**: Tavily’s MCP server can return images. Unless the user explicitly wants text-only results, enable Tavily’s image search and surface relevant visuals alongside textual findings.
 
 ## Best Practices

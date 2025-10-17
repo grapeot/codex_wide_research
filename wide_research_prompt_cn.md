@@ -87,7 +87,7 @@
 - **临时目录隔离**：除最终交付物外的中间产物（脚本日志、解析结果、缓存、调试输出等）应存放在工作目录下的临时子目录（如 `tmp/`、`raw/`、`cache/`），必要时在流程结束后按需清理。
 - **子进程自治**：在 prompt 中明确要求子进程全程自主执行（避免等待人工确认或 plan 工具阻塞），并给出具体指令/脚本片段（如 Python 模板、`curl` 命令等），确保其可直接落地。
 - **搜索服务优先级**：在需要大量检索前，先查看可用的 MCP server（例如运行 `codex mcp list`）。若存在 `tavily-remote`，必须优先使用 Tavily 的搜索工具；仅在缺少 Tavily 时才退回 Codex 自带的 search 能力。
-- **Tavily 检索参数**：调用 Tavily 时，将 `max_results` 默认设为 10（若任务覆盖面仍不足，可提升至 20），启用 `search_depth="advanced"`，并开启 `include_answer` 或 `include_raw_content` 以获取正文或摘要内容，而不是仅返回链接列表。
+- **Tavily 检索参数**：调用 Tavily 时，将 `max_results` 默认设为 6（若任务覆盖面不足，可提升至 10），启用 `search_depth="advanced"`，并开启 `include_answer` 或 `include_raw_content` 以获取正文或摘要内容，而不是仅返回链接列表。
 - **图像检索**：Tavily MCP server 支持图像搜索；除非用户明确要求“仅限纯文本”，否则应开启图像检索，并将相关图像结果与文本一并呈现给用户。
 
 ## 通用经验与最佳实践
